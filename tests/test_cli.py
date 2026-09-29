@@ -136,6 +136,22 @@ def test_audit_judge_from_config(tmp_path: Path, capsys) -> None:
     assert "calibration" in payload and "ppi" in payload
 
 
+def test_attribute_from_config(tmp_path: Path, capsys) -> None:
+    import json
+
+    config = tmp_path / "agent.yaml"
+    config.write_text("name: attr_smoke\ncase: tests.fakes.cli_helpers:build_attribution_case\n")
+    out_dir = tmp_path / "runs"
+    code = main(["attribute", "--config", str(config), "--out", str(out_dir)])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "Attribution for task" in out and "DECISIVE" in out
+    written = list(out_dir.glob("*_attr_smoke.json"))
+    assert len(written) == 1
+    payload = json.loads(written[0].read_text())
+    assert payload["decisive_step"] is not None
+
+
 def test_version(capsys) -> None:
     code = main(["version"])
     assert code == 0

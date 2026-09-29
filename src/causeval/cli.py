@@ -13,6 +13,7 @@ The intervention/audit/attribute commands arrive in later phases (SPEC section 4
 from __future__ import annotations
 
 import argparse
+import asyncio
 import importlib
 import json
 import sys
@@ -237,6 +238,43 @@ def cmd_audit_judge(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_attribute(args: argparse.Namespace) -> int:
+    """Attribute a failed agent run to its decisive step by counterfactual replay.
+
+    Config key ``case`` is a ``module:factory`` returning an ``AttributionCase`` (harness, task,
+    failed + oracle traces, tools, and tau). The factory owns building/recording the traces so
+    the CLI stays agnostic to the user's agent framework.
+    """
+    from causeval.attribution.attribute import AttributionCase, attribute_failure
+
+    config = _load_config(args.config)
+    case = _resolve_callable(config["case"])()
+    if not isinstance(case, AttributionCase):
+        raise TypeError(f"{config['case']} must return an AttributionCase, got {type(case)}")
+
+    result = asyncio.run(
+        attribute_failure(
+            case.harness,
+            case.task,
+            case.failed_trace,
+            case.oracle_trace,
+            case.tools,
+            tau=case.tau,
+            r_refine=case.r_refine,
+            oracle_source=case.oracle_source,
+        )
+    )
+    print(result.summary())
+
+    name = config.get("name", "attribution")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out_path = Path(args.out) / f"{stamp}_{name}.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(result.model_dump_json(indent=2))
+    print(f"\nwrote {out_path}")
+    return 0
+
+
 def cmd_run(args: argparse.Namespace) -> int:
     config = _load_config(args.config)
     base = Path(args.config).resolve().parent
@@ -375,6 +413,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_audit.add_argument("--config", required=True)
     p_audit.add_argument("--out", default="runs")
     p_audit.set_defaults(func=cmd_audit_judge)
+
+    p_attr = sub.add_parser("attribute", help="attribute a failed agent run to its decisive step")
+    p_attr.add_argument("--config", required=True)
+    p_attr.add_argument("--out", default="runs")
+    p_attr.set_defaults(func=cmd_attribute)
 
     p_cmp = sub.add_parser("compare", help="compare two runs")
     _add_compare_args(p_cmp)

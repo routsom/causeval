@@ -1,6 +1,6 @@
 # Progress
 
-Current phase: **4 done; starting 5 — Agent attribution (B5)**
+Current phase: **5 done; starting 6 — IRT and adaptive sampling (B6)**
 
 ## Phase status
 
@@ -53,13 +53,28 @@ Current phase: **4 done; starting 5 — Agent attribution (B5)**
         Holm-adjusted fairness gaps for attribute swaps; invalid perturbations dropped & counted
   - [x] Acceptance test: fake app sensitive to one attribute swap + one distractor; engine
         flags exactly those (CI excludes 0) and none of the clean perturbations
-- [ ] Phase 5 — Agent attribution (B5)
+- [x] Phase 5 — Agent attribution (B5)
+  - [x] `attribution/trace.py` — Trace/Step schema, `from_records`, canonical args, defensive
+        `from_deepeval_trace` importer
+  - [x] `attribution/harness.py` — `AgentHarness`/`ToolBackend` protocols, `ToolSpec`,
+        `DictToolBackend`
+  - [x] `attribution/cassette.py` — record/replay with the novel-input policy (safe_live live,
+        side-effecting blocked, simulator fallback) + `verify_prefix` divergence check
+  - [x] `attribution/attribute.py` — counterfactual step effects (same-prefix R rollouts),
+        coarse-screen-then-refine, earliest-decisive-step, `AttributionCase`, histogram
+  - [x] CLI `attribute` (resolves an `AttributionCase` factory)
+  - [x] B5 benchmark + acceptance test: fault injected at a known step; decisive step == fault
+        step in 100% of tasks offline (target ≥90%)
 - [ ] Phase 6 — IRT and adaptive sampling (B6)
 - [ ] Phase 7 — Optional extensions
 
 ## Decisions log
 
 <!-- Newest first. Format: YYYY-MM-DD — decision — reason -->
+- 2026-09-29 — **Decisive step = earliest step whose effect CI lower bound clears τ**, per SPEC. Intervening `do(step_k = oracle)` on a *downstream* step also repairs the outcome (forcing a later value fixes the final answer), so multiple steps can show a large effect; taking the earliest returns the root cause, not a symptom. Verified: B5 decisive-step accuracy is 100% offline with the fault placed uniformly across the 3 plan steps.
+- 2026-09-29 — Attribution estimates **both terms (do-oracle and natural) with fresh R rollouts from the same prefix**, never against the single recorded failure (SPEC: "may be bad luck"). The reference agent injects independent execution noise (`flip=0.1`) so rollouts vary and the effect CIs are real rather than degenerate; effect CI is a normal-approx difference of two Bernoulli rates.
+- 2026-09-29 — B5's toy tools are deterministic read-only (`safe_live=True`), so the offline benchmark calls them live and the cassette record/replay + novel-input policy is exercised by dedicated `test_cassette.py` tests rather than inside the B5 loop. Keeps the acceptance focused on the attribution statistics while still delivering+testing the cassette module.
+- 2026-09-29 — `from_deepeval_trace` is a **thin defensive adapter** (`getattr` for spans/input/output), not a hard-coded DeepEval trace schema — respects CLAUDE.md rule 9 (read the installed source, don't guess) given DeepEval's trace API churn; the generic `from_records` path is what the harness/tests use and is fully covered.
 - 2026-09-29 — The **metamorphic-relation registry lives in `checks/relations.py`** and `interventions/perturb.py` imports it (not the reverse) — SPEC says the registry is "shared with perturb.py". `interventions` may depend on `checks` (both sit downstream of `stats`; only `stats` has an import restriction), and `checks` stays free of `interventions`. Transforms operate on a tiny `Example(question, contexts)` so the registry needs no `interventions` types.
 - 2026-09-29 — Perturbation **validity = "not a no-op"** by default (a transform that leaves the input unchanged is inapplicable and is dropped+counted), rather than always running an NLI meaning-preserving check. Our built-ins are meaning-preserving by construction; live runs plug a bidirectional-NLI/judge validity fn into the relation. This keeps Phase 4 fully offline and makes "attribute token absent" / "no context for a distractor" cleanly droppable.
 - 2026-09-29 — JSON Schema validation is a **hand-written minimal subset** (type/required/properties/items), not `jsonschema` — avoids adding a dependency for the small structured-output check we need; `bool` is explicitly rejected where `number`/`integer` is required (Python quirk). NLI equivalence stays behind the `nli` extra with a guarded `transformers` import.
@@ -92,6 +107,10 @@ Current phase: **4 done; starting 5 — Agent attribution (B5)**
 ## Session notes
 
 <!-- Short notes per session: what changed, what's next, anything surprising. -->
+- 2026-09-29 (Phase 5 complete) — Built the whole `attribution/` layer (trace, harness protocols, record/replay cassette, counterfactual attribution engine), the CLI `attribute`, and the B5 benchmark + report. 159 offline tests pass (17 new), ruff/format/mypy strict clean. Acceptance met: with a wrong-argument fault injected at a known step, the decisive step equals the fault step in **100%** of tasks offline (target ≥90%), across faults placed uniformly over the 3 plan steps.
+  - Key correctness lever: decisive step = *earliest* step clearing τ. Intervening on a downstream step also fixes the outcome, so several steps can look causal; earliest = root cause. Both effect terms use fresh same-prefix R rollouts (never the single recorded failure), with `flip=0.1` execution noise so the CIs are real. See decisions log.
+  - Cassette record/replay + novel-input policy (safe_live/side-effecting/simulator) is delivered and unit-tested; B5 itself uses live deterministic tools. `from_deepeval_trace` is a defensive adapter (rule 9).
+  - Next: Phase 6 IRT + adaptive sampling (B6) — `stats/irt.py` (2PL fit, likely via the `girth` extra), item pruning that preserves system ranking (Kendall τ ≥ 0.9), adaptive repeats. Acceptance: simulated 2PL parameter-recovery correlation ≥ 0.9; on ≥5 systems a 30-50% pruned set keeps ranking τ ≥ 0.9. Write the parameter-recovery simulation test first (statistical).
 - 2026-09-29 (Phase 4 complete) — Built `checks/` (deterministic checks + the shared metamorphic-relation registry) and `interventions/perturb.py` (the perturbation engine). 142 offline tests pass (20 new), ruff/format/mypy strict clean. Acceptance met: on a fake app with an injected sensitivity to the doctor→nurse swap and a URGENT distractor, the engine flags exactly those two (metric-effect CI excludes 0) and none of the six clean perturbations; the attribute-swap fairness gaps are Holm-adjusted (sensitive p_adj < 0.05, benign = 1.0).
   - No new B-letter benchmark for Phase 4 (SPEC's benchmark list jumps B4→B5); the acceptance is the injected-sensitivity test above, kept deterministic and offline.
   - `checks` hosts the relation registry; `perturb` imports it (dependency direction noted in the decisions log). NLI equivalence is behind the `nli` extra (guarded `transformers` import), added to the mypy untyped-module overrides.
