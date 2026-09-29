@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "title": "B2 RAG grounding (offline synthetic)",
+    "generated_at": "2026-09-29T14:59:38.023470+00:00",
+    "n_items": 40,
+    "repeats": 8,
+    "note": "Synthetic behaviour-driven app; not a real judge."
+  },
+  "ca_auroc": 1.0,
+  "class_counts": {
+    "grounded": 20,
+    "parametric": 20
+  },
+  "estimates": [
+    {
+      "schema_version": "0.1",
+      "metric": "context_reliance",
+      "condition": "grounding",
+      "estimate": 0.4625,
+      "ci_low": 0.3112229812408558,
+      "ci_high": 0.6205914302105984,
+      "ci_level": 0.95,
+      "method": "cluster_bootstrap_studentized_B=2000",
+      "n_items": 40,
+      "n_repeats": 8,
+      "n_failed": 0,
+      "var_between": 0.0,
+      "var_within": 0.0,
+      "icc": 0.0,
+      "flaky_items": [],
+      "small_sample": false,
+      "t_ci_low": null,
+      "t_ci_high": null
+    },
+    {
+      "schema_version": "0.1",
+      "metric": "counterfactual_adherence",
+      "condition": "grounding",
+      "estimate": 0.50625,
+      "ci_low": 0.372198793056588,
+      "ci_high": 0.6428151096788093,
+      "ci_level": 0.95,
+      "method": "cluster_bootstrap_studentized_B=2000",
+      "n_items": 40,
+      "n_repeats": 8,
+      "n_failed": 0,
+      "var_between": 0.0,
+      "var_within": 0.0,
+      "icc": 0.0,
+      "flaky_items": [],
+      "small_sample": false,
+      "t_ci_low": null,
+      "t_ci_high": null
+    }
+  ]
+}

@@ -26,6 +26,8 @@ from causeval import __version__
 from causeval.adapters.metric_factory import MetricSpec
 from causeval.core.schemas import Comparison, RunResult
 from causeval.experiment import Experiment
+from causeval.interventions.cf_gen import Counterfactual, load_cf_overrides
+from causeval.interventions.rag import GroundingItem, ground
 from causeval.stats.compare import compare
 from causeval.stats.gate import gate
 from causeval.stats.planner import estimate_variance_for_planning, plan_power
@@ -92,7 +94,86 @@ def _build_metric_specs(entries: list[dict[str, Any]]) -> list[MetricSpec]:
     return specs
 
 
+def _counterfactual_from(d: dict[str, Any]) -> Counterfactual:
+    original = str(d["original_value"])
+    cf_value = str(d["cf_value"])
+    chunk_index = int(d.get("chunk_index", 0))
+    edited = d.get("edited_chunk")
+    return Counterfactual(
+        chunk_index=chunk_index,
+        original_value=original,
+        cf_value=cf_value,
+        edited_chunk=str(edited) if edited is not None else "",
+    )
+
+
+def _load_grounding_dataset(
+    items: list[dict[str, Any]], overrides: dict[str, Counterfactual]
+) -> list[GroundingItem]:
+    dataset: list[GroundingItem] = []
+    for it in items:
+        item_id = str(it["item_id"])
+        cf = overrides.get(item_id)
+        if cf is None and it.get("cf"):
+            cf = _counterfactual_from(it["cf"])
+        dataset.append(
+            GroundingItem(
+                item_id=item_id,
+                question=str(it["question"]),
+                contexts=list(it["contexts"]),
+                expected_output=it.get("expected_output"),
+                cf=cf,
+            )
+        )
+    return dataset
+
+
+def _resolve_app(dotted: str) -> Any:
+    """Resolve a RAGApp: a dotted path to an app object, or a zero-arg factory for one."""
+    obj = _resolve_callable(dotted)
+    if hasattr(obj, "answer"):
+        return obj
+    return obj()  # a factory returning a RAGApp
+
+
 # ---- command handlers -----------------------------------------------------------
+
+
+def cmd_ground(args: argparse.Namespace) -> int:
+    config = _load_config(args.config)
+    base = Path(args.config).resolve().parent
+    overrides: dict[str, Counterfactual] = {}
+    if config.get("cf_overrides"):
+        cf_path = base / config["cf_overrides"]
+        overrides = load_cf_overrides(cf_path)
+    dataset = _load_grounding_dataset(_load_dataset(config["dataset"], base), overrides)
+    app = _resolve_app(config["app"])
+
+    faith_spec = None
+    if config.get("faithfulness"):
+        f = config["faithfulness"]
+        faith_spec = MetricSpec(name=f["name"], kwargs=f.get("kwargs", {}))
+
+    result = ground(
+        app,
+        dataset,
+        repeats=int(config.get("repeats", 5)),
+        seed=int(config.get("seed", 0)),
+        tau=float(config.get("tau", 0.5)),
+        conflict_policy=config.get("conflict_policy", "follow_context"),
+        faithfulness_spec=faith_spec,
+        level=float(config.get("level", 0.95)),
+        n_boot=int(config.get("n_boot", 2000)),
+    )
+
+    name = config.get("name", "grounding")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out_path = Path(args.out) / f"{stamp}_{name}.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(result.model_dump_json(indent=2))
+    print(result.summary())
+    print(f"\nwrote {out_path}")
+    return 0
 
 
 def cmd_run(args: argparse.Namespace) -> int:
@@ -223,6 +304,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--config", required=True)
     p_run.add_argument("--out", default="runs")
     p_run.set_defaults(func=cmd_run)
+
+    p_ground = sub.add_parser("ground", help="run RAG causal grounding from a config")
+    p_ground.add_argument("--config", required=True)
+    p_ground.add_argument("--out", default="runs")
+    p_ground.set_defaults(func=cmd_ground)
 
     p_cmp = sub.add_parser("compare", help="compare two runs")
     _add_compare_args(p_cmp)

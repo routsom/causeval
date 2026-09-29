@@ -76,6 +76,29 @@ def test_plan_prints_table(tmp_path: Path, capsys) -> None:
     assert "Plan to detect" in out
 
 
+def test_ground_from_config(tmp_path: Path, capsys) -> None:
+    dataset = tmp_path / "rag.jsonl"
+    dataset.write_text(
+        '{"item_id": "a", "question": "year?", "contexts": ["Founded in 2019."], '
+        '"expected_output": "2019", '
+        '"cf": {"chunk_index": 0, "original_value": "2019", "cf_value": "1994", '
+        '"edited_chunk": "Founded in 1994."}}\n'
+    )
+    config = tmp_path / "rag.yaml"
+    config.write_text(
+        "name: ground_smoke\n"
+        f"dataset: {dataset}\n"
+        "repeats: 3\n"
+        "app: tests.fakes.cli_helpers:build_grounded_app\n"
+    )
+    out_dir = tmp_path / "runs"
+    code = main(["ground", "--config", str(config), "--out", str(out_dir)])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "RAG grounding" in out
+    assert len(list(out_dir.glob("*_ground_smoke.json"))) == 1
+
+
 def test_version(capsys) -> None:
     code = main(["version"])
     assert code == 0

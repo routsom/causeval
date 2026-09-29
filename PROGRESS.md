@@ -1,6 +1,6 @@
 # Progress
 
-Current phase: **1 done; starting 2 — RAG causal grounding**
+Current phase: **2 done; starting 3 — Judge audit**
 
 ## Phase status
 
@@ -21,7 +21,14 @@ Current phase: **1 done; starting 2 — RAG causal grounding**
   - [x] `stats/planner.py` — power-based (n, R) planning from a pilot pair
   - [x] `Experiment` orchestrator + `RunResult.summary()`; CLI `run/compare/gate/plan`
   - [x] B1 sims: CI coverage grid, false-regression ≤ 0.05 at Δ=0, power curve (all @sim)
-- [ ] Phase 2 — RAG causal grounding (B2)
+- [x] Phase 2 — RAG causal grounding (B2)
+  - [x] `interventions/cf_gen.py` — single-fact counterfactual edits, local/contradiction/
+        naturalness validity gates, injectable LLM steps, JSONL overrides loader
+  - [x] `interventions/rag.py` — full/none/loo_k/cf conditions, Context Reliance,
+        Counterfactual Adherence, per-chunk effects, grounded/parametric/confabulating/mixed
+        classification, false-faithful flag, cluster-bootstrap CIs
+  - [x] CLI `ground` (config-driven, resolves a RAGApp or factory, writes JSON + summary)
+  - [x] `bench/rag_grounding.py` + B2 acceptance test (CA AUROC 1.000 offline, ≥0.9 under noise)
 - [ ] Phase 3 — Judge audit, calibration, PPI, conformal (B3, B4)
 - [ ] Phase 4 — Perturbations and deterministic checks
 - [ ] Phase 5 — Agent attribution (B5)
@@ -31,6 +38,9 @@ Current phase: **1 done; starting 2 — RAG causal grounding**
 ## Decisions log
 
 <!-- Newest first. Format: YYYY-MM-DD — decision — reason -->
+- 2026-09-29 — Counterfactual Adherence (`P(follows_cf|cf)`), not Context Reliance, is B2's primary grounding signal — CR conflates "context helps" with "answer depends on context"; a parametric model that already knows the fact has CR≈0 but so does a grounded model given redundant context. CA intervenes directly on the fact, so it separates grounded from parametric behaviour cleanly (offline AUROC 1.000, ≥0.9 at 0.8/0.2 follow rates). Faithfulness AUROC on set (b) is a live-only comparison (expected to fail to separate), not asserted offline.
+- 2026-09-29 — `edit_is_local` uses prefix/suffix matching around the value span, **not** difflib opcodes — old/new values that share characters (`2019`→`1994` share `19`) make an opcode diff report multiple edit regions and wrongly reject a valid local edit. Anchoring on the first occurrence of `original_value` and checking the surrounding text is unchanged is exact for single-fact edits.
+- 2026-09-29 — Invalid counterfactuals are **skipped and counted** (`Counterfactual.skipped(reason)`), never raised, so one bad edit doesn't abort a grounding run; `a_ground` records `n_cf_skipped` and those items simply carry `counterfactual_adherence=None`. Matches the CLAUDE.md rule to record a failed intervention explicitly rather than substitute a default.
 - 2026-09-29 — Default CI method is the **studentized** (bootstrap-t) cluster bootstrap, not percentile — SPEC §3.3 names percentile as default with BCa optional, but both undercover a symmetric statistic (the mean) at n=20 and fail B1's [0.93, 0.97] target. Empirical coverage at n=20 (2000 sims): percentile 0.924, BCa 0.926, t-interval 0.951, bootstrap-t 0.950. Bootstrap-t is second-order accurate for the mean, keeps the clustered resampling, and passes B1. `percentile` and `bca` remain selectable via `method=`.
 - 2026-09-29 — Holm across metrics is applied as **Holm-adjusted confidence levels** inside `compare()` (ordered by Wilcoxon p), so the returned CI + verdict already reflect the family correction — matches SPEC's "Gate uses Holm-adjusted confidence levels"; keeps all the paired-diff data in one place.
 - 2026-09-29 — `Experiment` calls the app once per item, then repeats only the metric measurement R times — isolates judge/measurement noise for Phase 1. App-side interventions (RAG ablation, perturbations) resample the input in later phases.
@@ -53,6 +63,10 @@ Current phase: **1 done; starting 2 — RAG causal grounding**
 ## Session notes
 
 <!-- Short notes per session: what changed, what's next, anything surprising. -->
+- 2026-09-29 (Phase 2 complete) — Built `interventions/cf_gen.py` + `interventions/rag.py`, CLI `ground`, and `bench/rag_grounding.py` with the B2 acceptance test. 86 offline tests pass (27 new), ruff/format/mypy strict clean. B2 CA AUROC = 1.000 offline (grounded vs parametric), ≥0.9 under 0.8/0.2 follow-rate noise; report committed under `bench/results/`.
+  - CA is the primary signal, not CR (see decisions log). `edit_is_local` uses prefix/suffix anchoring, not difflib, because shared characters between old/new values (`2019`→`1994`) fool an opcode diff. Invalid counterfactuals are skipped-and-counted, never raised.
+  - LLM-backed cf-generation steps (span extraction, replacement, contradiction/naturalness checks) are injectable callables so the engine is fully testable offline; the deterministic `contains_outcome`/`follows_cf_outcome` outcome fns cover the offline path, with judge-based variants deferred to live.
+  - Next: Phase 3 judge audit — bias probes (position 0.15, verbosity +0.08), human calibration, PPI, conformal abstention; B3/B4. Write the recovery-simulation tests first (statistical, so test-first).
 - 2026-09-29 (Phase 1 complete) — Built `stats/` (estimate, compare, gate, planner) + the `Experiment` orchestrator + CLI `run/compare/gate/plan`. 59 offline tests pass (34 new), ruff/format/mypy strict clean. B1 sims are `@pytest.mark.sim` with lenient binomial bounds offline; the strict [0.93,0.97] / ≥1000-sim versions are the nightly target (SPEC §7).
   - Surprise worth remembering: percentile/BCa bootstrap **undercover the mean at n=20** (~0.925) and miss B1; switched the default to the studentized bootstrap-t (see decisions log with the empirical table). Any future estimator work should keep coverage on the (n,R) grid in mind.
   - CLI verified end-to-end via the console script (`causeval gate` → exit 1 on a real regression; `causeval plan` renders the (n,R) table). Fake-metric runs have zero within-variance, so their CIs are degenerate (zero-width) — expected; real judges will have noise.
