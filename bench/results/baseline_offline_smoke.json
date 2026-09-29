@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "title": "Baseline variance (offline synthetic smoke)",
+    "generated_at": "2026-09-29T09:22:02.698862+00:00",
+    "judge_model": "synthetic (seeded)",
+    "repeats": "10",
+    "threshold": "0.7",
+    "note": "Synthetic data; not a real judge. Use run_live for the committed deliverable."
+  },
+  "baselines": [
+    {
+      "metric": "AnswerRelevancyMetric",
+      "n_items": 30,
+      "n_repeats": 10,
+      "n_failed": 0,
+      "mean_score": 0.6606361216058863,
+      "ci_low": 0.6226118320605467,
+      "ci_high": 0.7007615559224594,
+      "ci_method": "cluster_bootstrap_percentile_B=2000",
+      "mean_within_item_variance": 0.014881880086173842,
+      "flip_fraction": 0.9333333333333333,
+      "n_flaky_items": 10
+    },
+    {
+      "metric": "ContextualRelevancyMetric",
+      "n_items": 30,
+      "n_repeats": 10,
+      "n_failed": 0,
+      "mean_score": 0.7137692528783207,
+      "ci_low": 0.6750591968272476,
+      "ci_high": 0.7508317007508312,
+      "ci_method": "cluster_bootstrap_percentile_B=2000",
+      "mean_within_item_variance": 0.011741961579018656,
+      "flip_fraction": 0.8,
+      "n_flaky_items": 10
+    },
+    {
+      "metric": "FaithfulnessMetric",
+      "n_items": 30,
+      "n_repeats": 10,
+      "n_failed": 0,
+      "mean_score": 0.6921755453013231,
+      "ci_low": 0.6608200305211589,
+      "ci_high": 0.7233671204326163,
+      "ci_method": "cluster_bootstrap_percentile_B=2000",
+      "mean_within_item_variance": 0.013468645451330499,
+      "flip_fraction": 0.9333333333333333,
+      "n_flaky_items": 16
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+name: deepeval-latest
+
+# Early warning for DeepEval API churn (SPEC §9). Installs the newest DeepEval within the
+# pinned major and runs the offline suite. Allowed to fail without blocking anything.
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  latest:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Sync then upgrade deepeval to latest (<5)
+        run: |
+          uv sync
+          uv pip install --upgrade "deepeval<5"
+      - name: Show resolved deepeval version
+        run: uv run python -c "import importlib.metadata as m; print('deepeval', m.version('deepeval'))"
+      - name: Offline tests
+        run: uv run pytest -m "not live"

@@ -1,0 +1,10 @@
+causeval
+Copyright 2026 causeval authors
+
+Licensed under the Apache License, Version 2.0 (the "License"); see the LICENSE file.
+
+This product depends on DeepEval (https://github.com/confident-ai/deepeval), which is
+also licensed under the Apache License, Version 2.0.
+
+If any DeepEval source is copied into this repository, its original Apache 2.0 header is
+retained and the file plus the change is recorded below. (No such copies exist yet.)

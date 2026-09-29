@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Environments
+.venv/
+.env
+
+# Tooling caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# causeval artifacts
+.causeval/
+runs/
+!bench/results/
+
+# OS
+.DS_Store
