@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "title": "B6 IRT recovery and pruning (offline synthetic)",
+    "generated_at": "2026-09-29T20:53:19.651115+00:00",
+    "recovery_systems": 500,
+    "pruning_systems": 10,
+    "note": "Simulated 2PL data; native joint-MAP fit (L-BFGS)."
+  },
+  "recovery": {
+    "corr_difficulty": 0.989597344448643,
+    "corr_discrimination": 0.9478728232816878,
+    "corr_ability": 0.9808822682856124,
+    "converged": true,
+    "n_iter": 174
+  },
+  "pruning": {
+    "keep_frac": 0.5,
+    "n_kept": 100,
+    "kendall_tau": 0.9999999999999999,
+    "kendall_tau_vs_true": 0.9999999999999999
+  }
+}
