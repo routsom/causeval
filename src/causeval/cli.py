@@ -176,6 +176,67 @@ def cmd_ground(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_audit_judge(args: argparse.Namespace) -> int:
+    """Calibrate a judge against human labels, and (if unlabeled scores are given) run PPI.
+
+    Config keys:
+      * ``labeled``   -- JSONL of ``{item_id, judge_score, human_label}`` (required);
+      * ``unlabeled`` -- JSONL of ``{item_id, judge_score}`` (optional; enables PPI);
+      * ``threshold`` -- pass threshold for calibration (default 0.5);
+      * ``seed``      -- RNG seed for the ECE/PPI bootstrap (default 0);
+      * ``i_know_the_labels_are_random`` -- bypass PPI's random-sample guard (default false).
+    """
+    from causeval.judge_audit.calibration import calibrate
+    from causeval.judge_audit.ppi import ppi_mean
+
+    config = _load_config(args.config)
+    base = Path(args.config).resolve().parent
+    seed = int(config.get("seed", 0))
+    threshold = float(config.get("threshold", 0.5))
+
+    labeled = _load_dataset(config["labeled"], base)
+    labeled_ids = [str(r["item_id"]) for r in labeled]
+    judge_scores = [float(r["judge_score"]) for r in labeled]
+    human_labels = [float(r["human_label"]) for r in labeled]
+
+    report = calibrate(
+        judge_scores,
+        human_labels,
+        threshold=threshold,
+        rng=np.random.default_rng(seed),
+    )
+    output: dict[str, Any] = {"calibration": report.model_dump(mode="json")}
+    print(report.summary())
+
+    if config.get("unlabeled"):
+        unlabeled = _load_dataset(config["unlabeled"], base)
+        f_unlabeled = [float(r["judge_score"]) for r in unlabeled]
+        plan_ids = labeled_ids + [str(r["item_id"]) for r in unlabeled]
+        ppi = ppi_mean(
+            human_labels,
+            judge_scores,
+            f_unlabeled,
+            labeled_ids=labeled_ids,
+            sampling_plan_ids=plan_ids,
+            i_know_the_labels_are_random=bool(config.get("i_know_the_labels_are_random", False)),
+            level=float(config.get("level", 0.95)),
+        )
+        output["ppi"] = ppi.model_dump(mode="json")
+        print(
+            f"PPI human-mean: {ppi.estimate:.3f} "
+            f"[{int(ppi.ci_level * 100)}% CI {ppi.ci_low:.3f}, {ppi.ci_high:.3f}] "
+            f"(lambda={ppi.lam:.3f}, effective_n={ppi.effective_n:.1f} vs {ppi.n_labeled} labels)"
+        )
+
+    name = config.get("name", "judge_audit")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out_path = Path(args.out) / f"{stamp}_{name}.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(output, indent=2))
+    print(f"\nwrote {out_path}")
+    return 0
+
+
 def cmd_run(args: argparse.Namespace) -> int:
     config = _load_config(args.config)
     base = Path(args.config).resolve().parent
@@ -309,6 +370,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_ground.add_argument("--config", required=True)
     p_ground.add_argument("--out", default="runs")
     p_ground.set_defaults(func=cmd_ground)
+
+    p_audit = sub.add_parser("audit-judge", help="calibrate a judge vs human labels (+ PPI)")
+    p_audit.add_argument("--config", required=True)
+    p_audit.add_argument("--out", default="runs")
+    p_audit.set_defaults(func=cmd_audit_judge)
 
     p_cmp = sub.add_parser("compare", help="compare two runs")
     _add_compare_args(p_cmp)

@@ -99,6 +99,43 @@ def test_ground_from_config(tmp_path: Path, capsys) -> None:
     assert len(list(out_dir.glob("*_ground_smoke.json"))) == 1
 
 
+def test_audit_judge_from_config(tmp_path: Path, capsys) -> None:
+    import json
+
+    # labeled set: judge tracks the human label with a small positive bias.
+    labeled = tmp_path / "labeled.jsonl"
+    labeled.write_text(
+        "\n".join(
+            json.dumps(
+                {"item_id": f"i{i}", "judge_score": min(1.0, i / 30 + 0.1), "human_label": i / 30}
+            )
+            for i in range(30)
+        )
+        + "\n"
+    )
+    unlabeled = tmp_path / "unlabeled.jsonl"
+    unlabeled.write_text(
+        "\n".join(json.dumps({"item_id": f"u{i}", "judge_score": i / 40}) for i in range(40)) + "\n"
+    )
+    config = tmp_path / "judge.yaml"
+    config.write_text(
+        "name: judge_smoke\n"
+        f"labeled: {labeled}\n"
+        f"unlabeled: {unlabeled}\n"
+        "threshold: 0.5\n"
+        "i_know_the_labels_are_random: true\n"
+    )
+    out_dir = tmp_path / "runs"
+    code = main(["audit-judge", "--config", str(config), "--out", str(out_dir)])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "calibration" in out and "PPI human-mean" in out
+    written = list(out_dir.glob("*_judge_smoke.json"))
+    assert len(written) == 1
+    payload = json.loads(written[0].read_text())
+    assert "calibration" in payload and "ppi" in payload
+
+
 def test_version(capsys) -> None:
     code = main(["version"])
     assert code == 0

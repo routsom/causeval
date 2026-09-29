@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "title": "B4 prediction-powered inference (offline synthetic)",
+    "generated_at": "2026-09-29T19:45:11.187903+00:00",
+    "n_total": 1000,
+    "n_labeled": 100,
+    "judge_bias": 0.1,
+    "theta_true": 0.5169063382672536,
+    "note": "Synthetic judge with systematic bias; not a real LLM."
+  },
+  "example_draw": {
+    "ppi_estimate": 0.4942968783924492,
+    "ppi_ci": [
+      0.4633378969544562,
+      0.5252558598304422
+    ],
+    "ppi_ci_width": 0.061917962875986,
+    "human_only_ci": [
+      0.4399981018460956,
+      0.5525678593321603
+    ],
+    "human_only_ci_width": 0.11256975748606474,
+    "naive_judge_ci": [
+      0.5835106356524609,
+      0.6204129951636799
+    ],
+    "lambda": 0.721963535911401,
+    "effective_n": 330.52943558983077
+  },
+  "coverage": {
+    "ppi_coverage": 0.99,
+    "human_only_coverage": 0.975,
+    "naive_coverage": 0.0,
+    "ppi_mean_width": 0.061188666518795946,
+    "human_only_mean_width": 0.11161844597128169,
+    "n_sims": 200
+  }
+}

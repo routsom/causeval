@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "title": "B3 judge bias recovery (offline synthetic)",
+    "generated_at": "2026-09-29T19:45:05.079976+00:00",
+    "n_pairs": 80,
+    "n_items": 80,
+    "injected": {
+      "position": 0.15,
+      "verbosity": 0.08
+    },
+    "note": "Synthetic biased judges; not a real LLM."
+  },
+  "probes": {
+    "position": {
+      "true": 0.15,
+      "estimate": 0.15625,
+      "ci_low": 0.07768303269718287,
+      "ci_high": 0.22959233675480856,
+      "flagged": true,
+      "in_ci": true,
+      "extra": {
+        "order_consistency_rate": 0.4375
+      }
+    },
+    "verbosity": {
+      "true": 0.08,
+      "estimate": 0.06967483777828239,
+      "ci_low": 0.05296237515152426,
+      "ci_high": 0.08499951628816098,
+      "flagged": true,
+      "in_ci": true,
+      "extra": {}
+    },
+    "formatting": {
+      "true": 0.0,
+      "estimate": 0.010698197665967775,
+      "ci_low": -0.005309761295057497,
+      "ci_high": 0.026284176457175568,
+      "flagged": false,
+      "in_ci": true,
+      "extra": {}
+    },
+    "authorship": {
+      "true": 0.0,
+      "estimate": -0.00781469043955237,
+      "ci_low": -0.02255384581296923,
+      "ci_high": 0.006884984892633934,
+      "flagged": false,
+      "in_ci": true,
+      "extra": {}
+    }
+  }
+}
