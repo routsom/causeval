@@ -119,3 +119,19 @@ class RunResult(BaseModel):
     provenance: Provenance
     measurements: list[Measurement] = Field(default_factory=list)
     estimates: list[ScoreEstimate] = Field(default_factory=list)
+
+    def summary(self) -> str:
+        """A human-readable summary: never a bare score -- always CI, method, and n."""
+        lines = [f"Run '{self.name}'  (seed={self.provenance.seed})"]
+        judge = self.provenance.judge_model or "unknown"
+        lines.append(f"judge={judge}  causeval={self.provenance.causeval_version}")
+        for e in self.estimates:
+            flaky = f", flaky={len(e.flaky_items)}" if e.flaky_items else ""
+            failed = f", failed={e.n_failed}" if e.n_failed else ""
+            lines.append(
+                f"  {e.metric} [{e.condition}]: {e.estimate:.3f} "
+                f"[{int(e.ci_level * 100)}% CI {e.ci_low:.3f}, {e.ci_high:.3f}] "
+                f"(n={e.n_items}, R={e.n_repeats}, icc={e.icc:.2f}{flaky}{failed})"
+            )
+            lines.append(f"      method={e.method}")
+        return "\n".join(lines)

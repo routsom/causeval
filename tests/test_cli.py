@@ -1,0 +1,105 @@
+"""CLI: run persistence, compare/gate exit codes, and plan output (offline)."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from causeval import Experiment, MetricSpec
+from causeval.cli import main, save_run
+from tests.fakes.fake_judge import FakeScoringMetric
+
+
+def _make_run(shift: float, *, n: int = 20, repeats: int = 3):
+    spec = MetricSpec(builder=lambda: FakeScoringMetric(), label="fake")
+    dataset = [
+        {
+            "item_id": f"i{i:02d}",
+            "input": f"q{i}",
+            "actual_output": f"{0.5 + shift + 0.005 * i:.4f}",
+        }
+        for i in range(n)
+    ]
+    return Experiment(dataset=dataset, metrics=[spec], repeats=repeats, seed=0).run()
+
+
+def _write_pair(tmp_path: Path, base_shift: float, cand_shift: float) -> tuple[Path, Path]:
+    base_path = tmp_path / "baseline.json"
+    cand_path = tmp_path / "candidate.json"
+    save_run(_make_run(base_shift), base_path)
+    save_run(_make_run(cand_shift), cand_path)
+    return base_path, cand_path
+
+
+def test_gate_pass_exit_zero(tmp_path: Path, capsys) -> None:
+    base, cand = _write_pair(tmp_path, 0.0, 0.10)  # candidate clearly better
+    code = main(["gate", "--baseline", str(base), "--candidate", str(cand), "--margin", "0.02"])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "overall: pass" in out
+
+
+def test_gate_regression_exit_one(tmp_path: Path, capsys) -> None:
+    base, cand = _write_pair(tmp_path, 0.0, -0.10)  # candidate clearly worse
+    code = main(["gate", "--baseline", str(base), "--candidate", str(cand), "--margin", "0.02"])
+    out = capsys.readouterr().out
+    assert code == 1
+    assert "overall: regression" in out
+
+
+def test_compare_reports_without_exit_code(tmp_path: Path, capsys) -> None:
+    base, cand = _write_pair(tmp_path, 0.0, 0.05)
+    code = main(["compare", "--baseline", str(base), "--candidate", str(cand), "--margin", "0.02"])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "fake" in out and "verdict" in out
+
+
+def test_plan_prints_table(tmp_path: Path, capsys) -> None:
+    base, cand = _write_pair(tmp_path, 0.0, 0.03)
+    code = main(
+        [
+            "plan",
+            "--pilot-baseline",
+            str(base),
+            "--pilot-candidate",
+            str(cand),
+            "--metric",
+            "fake",
+            "--detect",
+            "0.03",
+            "--power",
+            "0.8",
+        ]
+    )
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "Plan to detect" in out
+
+
+def test_version(capsys) -> None:
+    code = main(["version"])
+    assert code == 0
+    assert "causeval" in capsys.readouterr().out
+
+
+def test_run_from_config(tmp_path: Path, capsys) -> None:
+    # A config whose app + metric are importable module paths; keeps `run` offline.
+    dataset = tmp_path / "data.jsonl"
+    dataset.write_text('{"item_id": "a", "input": "q1"}\n{"item_id": "b", "input": "q2"}\n')
+    config = tmp_path / "eval.yaml"
+    config.write_text(
+        "name: smoke\n"
+        f"dataset: {dataset}\n"
+        "repeats: 2\n"
+        "seed: 0\n"
+        "app: tests.fakes.cli_helpers:constant_app\n"
+        "metrics:\n"
+        "  - builder: tests.fakes.cli_helpers:build_fake_metric\n"
+        "    label: fake\n"
+    )
+    out_dir = tmp_path / "runs"
+    code = main(["run", "--config", str(config), "--out", str(out_dir)])
+    assert code == 0
+    written = list(out_dir.glob("*_smoke.json"))
+    assert len(written) == 1
+    assert "wrote" in capsys.readouterr().out

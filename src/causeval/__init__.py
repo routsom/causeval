@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from importlib.metadata import PackageNotFoundError, version
 
+from causeval.adapters.metric_factory import MetricSpec
 from causeval.core import (
     Comparison,
     Measurement,
@@ -15,6 +16,7 @@ from causeval.core import (
     RunResult,
     ScoreEstimate,
 )
+from causeval.experiment import Experiment
 
 try:
     __version__ = version("causeval")
@@ -23,7 +25,9 @@ except PackageNotFoundError:  # pragma: no cover - not installed (editable dev w
 
 __all__ = [
     "Comparison",
+    "Experiment",
     "Measurement",
+    "MetricSpec",
     "Provenance",
     "RunResult",
     "ScoreEstimate",
