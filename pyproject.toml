@@ -80,7 +80,7 @@ follow_imports = "skip"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["scipy.*", "girth.*", "ppi_py.*", "dowhy.*", "econml.*"]
+module = ["scipy.*", "girth.*", "ppi_py.*", "dowhy.*", "econml.*", "transformers.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

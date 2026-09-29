@@ -1,6 +1,6 @@
 # Progress
 
-Current phase: **3 done; starting 4 — Perturbations and deterministic checks**
+Current phase: **4 done; starting 5 — Agent attribution (B5)**
 
 ## Phase status
 
@@ -44,7 +44,15 @@ Current phase: **3 done; starting 4 — Perturbations and deterministic checks**
   - [x] CLI `audit-judge` (calibration + optional PPI from labeled/unlabeled JSONL)
   - [x] B3 (bias recovery) + B4 (PPI) benchmarks and acceptance tests; sim tests for PPI,
         conformal risk-control, and B3 coverage
-- [ ] Phase 4 — Perturbations and deterministic checks
+- [x] Phase 4 — Perturbations and deterministic checks
+  - [x] `checks/deterministic.py` — minimal dependency-free JSON Schema subset, regex,
+        user verifier callables, normalized-equivalence, optional NLI equivalence (nli extra)
+  - [x] `checks/relations.py` — shared metamorphic-relation registry + built-in transforms
+        (paraphrase, formatting, typo, reorder MC options, attribute-swap factory, distractor)
+  - [x] `interventions/perturb.py` — engine: invariance rate + paired metric-effect CI +
+        Holm-adjusted fairness gaps for attribute swaps; invalid perturbations dropped & counted
+  - [x] Acceptance test: fake app sensitive to one attribute swap + one distractor; engine
+        flags exactly those (CI excludes 0) and none of the clean perturbations
 - [ ] Phase 5 — Agent attribution (B5)
 - [ ] Phase 6 — IRT and adaptive sampling (B6)
 - [ ] Phase 7 — Optional extensions
@@ -52,6 +60,9 @@ Current phase: **3 done; starting 4 — Perturbations and deterministic checks**
 ## Decisions log
 
 <!-- Newest first. Format: YYYY-MM-DD — decision — reason -->
+- 2026-09-29 — The **metamorphic-relation registry lives in `checks/relations.py`** and `interventions/perturb.py` imports it (not the reverse) — SPEC says the registry is "shared with perturb.py". `interventions` may depend on `checks` (both sit downstream of `stats`; only `stats` has an import restriction), and `checks` stays free of `interventions`. Transforms operate on a tiny `Example(question, contexts)` so the registry needs no `interventions` types.
+- 2026-09-29 — Perturbation **validity = "not a no-op"** by default (a transform that leaves the input unchanged is inapplicable and is dropped+counted), rather than always running an NLI meaning-preserving check. Our built-ins are meaning-preserving by construction; live runs plug a bidirectional-NLI/judge validity fn into the relation. This keeps Phase 4 fully offline and makes "attribute token absent" / "no context for a distractor" cleanly droppable.
+- 2026-09-29 — JSON Schema validation is a **hand-written minimal subset** (type/required/properties/items), not `jsonschema` — avoids adding a dependency for the small structured-output check we need; `bool` is explicitly rejected where `number`/`integer` is required (Python quirk). NLI equivalence stays behind the `nli` extra with a guarded `transformers` import.
 - 2026-09-29 — Conformal selective judging uses a **fixed threshold grid + Bonferroni** Clopper-Pearson bounds, not a fixed-sequence-from-the-top test. SPEC names "Learn-then-Test with a Clopper-Pearson tail bound"; a top-down fixed sequence stops at the very first (highest) threshold, which accepts ~1 item and has a CP bound near 1, so it would abstain on everything. A pre-specified grid with Bonferroni (`delta/n_grid`) controls the family-wise error so selecting the lowest safe threshold is valid; the sim test confirms P(true error > α) ≤ δ.
 - 2026-09-29 — Isotonic calibration uses a hand-written **PAVA** (pool-adjacent-violators), not sklearn — avoids adding scikit-learn as a dependency for one function; the map is stored as (x, y) knots with clamped step interpolation and refit inside the ECE bootstrap.
 - 2026-09-29 — B3's synthetic judge and dataset get **independent seed streams** (`SeedSequence.spawn`). Seeding the judge's noise and the item qualities from the same seed correlated them and inflated the recovered position bias to 0.21 (true 0.15); independent streams recover 0.15 at ~95% coverage. General rule for future benchmarks: never share a seed between the data-generating process and the noise process.
@@ -81,6 +92,10 @@ Current phase: **3 done; starting 4 — Perturbations and deterministic checks**
 ## Session notes
 
 <!-- Short notes per session: what changed, what's next, anything surprising. -->
+- 2026-09-29 (Phase 4 complete) — Built `checks/` (deterministic checks + the shared metamorphic-relation registry) and `interventions/perturb.py` (the perturbation engine). 142 offline tests pass (20 new), ruff/format/mypy strict clean. Acceptance met: on a fake app with an injected sensitivity to the doctor→nurse swap and a URGENT distractor, the engine flags exactly those two (metric-effect CI excludes 0) and none of the six clean perturbations; the attribute-swap fairness gaps are Holm-adjusted (sensitive p_adj < 0.05, benign = 1.0).
+  - No new B-letter benchmark for Phase 4 (SPEC's benchmark list jumps B4→B5); the acceptance is the injected-sensitivity test above, kept deterministic and offline.
+  - `checks` hosts the relation registry; `perturb` imports it (dependency direction noted in the decisions log). NLI equivalence is behind the `nli` extra (guarded `transformers` import), added to the mypy untyped-module overrides.
+  - Next: Phase 5 agent attribution (B5) — `attribution/trace.py` (Trace/Step, DeepEval-trace importer), deterministic replay, step-level blame. Inject a fault at a known step k in a toy tool env (calculator/lookup/unit-converter); accept: decisive step == k in ≥90% of tasks. Offline with a scripted fake LLM. The fake agent already exists in `tests/fakes/fake_agent.py`.
 - 2026-09-29 (Phase 3 complete) — Built the whole `judge_audit/` layer (bias_probes, calibration, sampling, ppi, conformal, jury), the CLI `audit-judge`, and the B3/B4 benchmarks + reports. 122 offline tests pass (36 new), ruff/format/mypy strict clean. Acceptance: **B3** recovers injected position 0.15 (coverage ~0.96) and verbosity 0.08 (~0.93) inside their CIs, non-injected ~0; **B4** PPI covers the true mean (~0.98, conservative), naive judge-mean coverage 0.00 (biased), PPI CI ~half the human-only width.
   - Surprise worth remembering: sharing a seed between a synthetic judge and its dataset correlates the judge's noise with the item qualities and biases the recovered effect (0.15 → 0.21). Fixed with `SeedSequence.spawn`; see decisions log. Any future synthetic benchmark should spawn independent seed streams.
   - Conformal LTT needed a fixed grid + Bonferroni, not fixed-sequence-from-the-top (which abstains on everything because the top threshold accepts ~1 item). Sim test verifies the risk-control guarantee.
