@@ -1,0 +1,26 @@
+{
+  "judge_model": "claude-haiku-4-5-20251001",
+  "generated_at": "2026-09-30T20:42:16.678793+00:00",
+  "true_mean": 0.5,
+  "ppi": {
+    "schema_version": "0.1",
+    "estimand": "mean human score over the full dataset",
+    "estimate": 0.5098751835535976,
+    "ci_low": 0.3527892468209979,
+    "ci_high": 0.6669611202861974,
+    "ci_level": 0.95,
+    "method": "ppi++_lambda=0.709",
+    "lam": 0.7092511013215861,
+    "n_labeled": 12,
+    "n_unlabeled": 28,
+    "human_only_estimate": 0.5833333333333334,
+    "human_only_ci_low": 0.2919903758217436,
+    "human_only_ci_high": 0.8746762908449232,
+    "effective_n": 41.277718299926796
+  },
+  "naive_judge_mean": 0.5025000000000001,
+  "naive_ci": [
+    0.3491105620670264,
+    0.6558894379329737
+  ]
+}

@@ -230,7 +230,7 @@ can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 | **Baseline variance** | DeepEval single-sample scores are flaky; repeats + CIs quantify it | `claude-haiku-4-5` | clean items → 1.000, flip 0; borderline items → AnswerRelevancy **0.833 [0.633, 1.000]**, ContextualRelevancy **0.173 [0.000, 0.373]** ¹ |
 | **B2** RAG grounding | Counterfactual Adherence separates grounded vs parametric answers (AUROC ≥ 0.9); Faithfulness cannot | `claude-haiku-4-5` | **CA AUROC 0.833** (n=12: 6 fictional vs 6 well-known) ³ |
 | **B3** Judge bias | Real judges show measurable position/verbosity bias with CIs | `claude-haiku-4-5` | **position −0.292 [−0.422, −0.126]** (flagged), verbosity −0.061 (flagged), formatting/authorship n.s. ² |
-| **B4** PPI | PPI covers the human mean and beats the naive judge-mean at equal labels | _tbd_ | _pending_ |
+| **B4** PPI | PPI covers the human mean and beats the naive judge-mean at equal labels | `claude-haiku-4-5` | PPI **0.510 [0.353, 0.667]** covers truth (0.5); **eff. n ≈ 41 from 12 labels**, CI half of human-only ⁴ |
 | **B5** Agent attribution | Decisive step = injected fault step in ≥ 90% of tasks with a real model | _tbd_ | _pending_ |
 | **B6** IRT | On ≥ 5 real systems, pruning 30-50% of items keeps ranking Kendall τ ≥ 0.9 | _tbd_ | _pending_ |
 
@@ -269,6 +269,17 @@ can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 > Dickens") - a real sycophancy signal the metric surfaces. DeepEval Faithfulness would rate every
 > edited-context answer "faithful" and could not make this grounded-vs-parametric distinction at
 > all.
+>
+> ⁴ Live PPI ([`b4_ppi_live.md`](./bench/results/b4_ppi_live.md)) over 40 factual-QA items (20
+> correct, 20 with a plausible-but-wrong answer) where objective 0/1 correctness is the "human
+> label" and Claude's pointwise score is the predictor `f`. From a random 12-item labeled subset,
+> PPI estimates the true mean correctness as **0.510 [0.353, 0.667]** (truth = 0.500) with an
+> **effective sample size ≈ 41** - i.e. 12 human labels bought the precision of ~41, and the CI is
+> half the width of the human-only estimate (0.31 vs 0.58). Honest caveat: on these clear-cut
+> items Claude was a *well-calibrated* grader (naive judge-mean 0.503, essentially unbiased), so
+> there was little bias to correct here - unlike the offline synthetic judge. PPI's win on this
+> run is label efficiency; its bias-correction matters most on the subtler tasks where judges
+> drift (see the faithfulness leniency in the baseline footnote).
 
 Reproduce a live run (needs an API key for the provider you name; nothing is hardcoded):
 
