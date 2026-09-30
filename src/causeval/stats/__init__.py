@@ -9,6 +9,11 @@ from causeval.stats.compare import compare, compare_pass_rates
 from causeval.stats.estimate import cluster_bootstrap_ci, estimate, variance_components
 from causeval.stats.gate import GateReport, gate, gate_verdict, holm_adjust
 from causeval.stats.irt import IRTModel, fisher_information, fit_2pl, prune, rank_systems
+from causeval.stats.observational import (
+    ObservationalEffect,
+    aipw_ate,
+    estimate_effect,
+)
 from causeval.stats.planner import (
     PlanOption,
     VarianceForPlanning,
@@ -19,13 +24,16 @@ from causeval.stats.planner import (
 __all__ = [
     "GateReport",
     "IRTModel",
+    "ObservationalEffect",
     "PlanOption",
     "VarianceForPlanning",
+    "aipw_ate",
     "allocate_repeats",
     "cluster_bootstrap_ci",
     "compare",
     "compare_pass_rates",
     "estimate",
+    "estimate_effect",
     "estimate_variance_for_planning",
     "fisher_information",
     "fit_2pl",

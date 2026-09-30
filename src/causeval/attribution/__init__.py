@@ -21,6 +21,7 @@ from causeval.attribution.trace import (
     Trace,
     canonical_args,
     from_deepeval_trace,
+    from_otel_spans,
     from_records,
 )
 
@@ -43,6 +44,7 @@ __all__ = [
     "canonical_args",
     "decisive_step_histogram",
     "from_deepeval_trace",
+    "from_otel_spans",
     "from_records",
     "verify_prefix",
 ]

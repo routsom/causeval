@@ -1,6 +1,6 @@
 # Progress
 
-Current phase: **6 done; Phase 7 (optional extensions) remaining**
+Current phase: **All core phases (0-6) done; Phase 7 causal extensions done (framework adapters/HTML/pytest-plugin deferred)**
 
 ## Phase status
 
@@ -74,11 +74,21 @@ Current phase: **6 done; Phase 7 (optional extensions) remaining**
         to 50% keeps system ranking Kendall τ ≥ 0.9; adaptive allocation keeps CI coverage
         within B1 bounds (coverage sim)
   - [x] `girth` cross-check (CI-only; wheel not installed locally)
-- [ ] Phase 7 — Optional extensions
+- [x] Phase 7 — Optional extensions (causal subset; framework adapters/HTML/pytest-plugin deferred)
+  - [x] `stats/observational.py` — AIPW doubly-robust ATE with K-fold cross-fitting, plus
+        placebo / random-common-cause / data-subset refuters and the fixed
+        unobserved-confounding warning
+  - [x] `interventions/cot.py` — CoT faithfulness: early-answering agreement curve + AOC,
+        mistake-insertion sensitivity, cluster-bootstrap CIs (needs prefill+visible reasoning)
+  - [x] `attribution/trace.py:from_otel_spans` — OpenTelemetry GenAI span JSON importer
+  - [ ] Deferred (opt-in, need uninstalled frameworks): LangGraph/OpenAI-Agents/Pydantic-AI
+        harness adapters, HTML report, pytest plugin
 
 ## Decisions log
 
 <!-- Newest first. Format: YYYY-MM-DD — decision — reason -->
+- 2026-09-30 — Phase 7 scoped to the **causal extensions** (observational AIPW, CoT faithfulness, OTel import); framework harness adapters, HTML report, and pytest plugin deferred. Per the "don't build machinery without a concrete need" rule: the deferred items need uninstalled frameworks (LangGraph/OpenAI-Agents/Pydantic-AI) and are integration/presentation surface that can't be meaningfully tested offline, whereas the causal pieces are thesis-central and fully offline-testable. User approved this scope.
+- 2026-09-30 — Observational effect uses **cross-fit AIPW** (doubly robust), not plain IPW or a single outcome model. It's consistent if *either* the propensity or the outcome model is right, and K-fold cross-fitting keeps it root-n valid without assuming the nuisance models are perfect. Nuisances are ridge logistic (propensity) + ridge OLS per arm (outcomes), implemented natively; DoWhy/EconML remain optional and are not required for the estimator. Refuters are behavioural checks (placebo→CI covers 0, random-common-cause→estimate stable, subset→stable), and the result always carries the fixed "unobserved confounding cannot be ruled out" warning.
 - 2026-09-29 — 2PL fit is a **joint MAP via L-BFGS with an N(0,1) ability prior**, not the alternating coordinate ascent I first wrote. Coordinate ascent that re-standardised θ every iteration oscillated and never converged (poor recovery). Joint L-BFGS over all params with analytic gradients converges; the ability prior pins the scale/location the likelihood leaves free, and θ is standardised once at the end. `girth` (MML) stays a CI-only cross-check.
 - 2026-09-29 — B6 **recovery uses many systems (500), pruning uses few well-separated systems (10)**. Discrimination `a_i` is estimated from `n_systems` observations, so ≥0.9 recovery needs hundreds of systems (a consistency demonstration); the SPEC's "≥5 systems" is the identifiability floor, which the pruning test exercises. Pruning ranks by mean score, so near-tied random abilities reshuffle under subsetting; using evenly-spaced abilities (the realistic "systems of interest") and keeping 50% gives τ ≥ 0.9 robustly (min 0.91 over 10 seeds).
 - 2026-09-29 — Adaptive allocation is **Neyman (∝ within-item sd)** and its coverage is confirmed by simulation, per SPEC's warning about data-dependent allocation. The grand-mean-of-item-means estimator stays unbiased under any allocation and the cluster bootstrap resamples the realised item means, so coverage holds (sim: ≥0.90 offline).
@@ -118,6 +128,9 @@ Current phase: **6 done; Phase 7 (optional extensions) remaining**
 ## Session notes
 
 <!-- Short notes per session: what changed, what's next, anything surprising. -->
+- 2026-09-30 (Phase 7 causal extensions complete) — Built `stats/observational.py` (cross-fit AIPW ATE + placebo/random-common-cause/subset refuters + unobserved-confounding warning), `interventions/cot.py` (CoT faithfulness: early-answering AOC + mistake sensitivity), and `attribution/trace.py:from_otel_spans` (OTel GenAI import). 186 offline tests pass (10 new), ruff/format/mypy strict clean. Scope approved by user: framework harness adapters (LangGraph/OpenAI-Agents/Pydantic-AI), HTML report, and pytest plugin are deferred (need uninstalled frameworks; integration/presentation surface, not offline-testable).
+  - AIPW sim confirms it covers the true ATE (~0.95) on confounded logs where the naive difference-in-means coverage collapses (≤0.5). CoT: a reasoning-driven fake model shows high AOC + mistake sensitivity, a fixed-answer model shows ~0 for both.
+  - All core phases 0-6 + benchmarks B1-B6 are done; this closes the SPEC's implementable scope. The remaining Phase 7 items are opt-in integrations to add when a concrete framework/target exists.
 - 2026-09-29 (Phase 6 complete) — Built `stats/irt.py` (native 2PL joint-MAP fit + Fisher-info pruning + system ranking) and `stats/adaptive.py` (Neyman repeat allocation), plus the B6 benchmark + report. 176 offline tests pass (17 new), ruff/format/mypy strict clean. Acceptance: 2PL recovery b=0.99 / a=0.95 / θ=0.98 (all ≥0.9); pruning to 50% keeps ranking Kendall τ = 1.0 at seed 0 (min 0.91 over seeds); adaptive coverage sim holds within B1 bounds.
   - Surprise: my first IRT fit (alternating coordinate ascent with per-iteration θ re-standardisation) oscillated and never converged. Switched to joint L-BFGS MAP with an N(0,1) ability prior and analytic gradients - converges, and the prior pins the metric the likelihood leaves free. Discrimination is the data-hungry parameter (needs hundreds of systems for ≥0.9 recovery); pruning uses a few well-separated systems instead. See decisions log.
   - `girth` cross-check written but skips locally (wheel not installed, like ppi_py/transformers); runs in CI.

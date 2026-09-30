@@ -69,6 +69,54 @@ def from_records(records: list[dict[str, Any]], *, final_output: Any = None) -> 
     return Trace(steps=steps, final_output=final_output)
 
 
+_OTEL_TOOL_OPS = {"execute_tool", "tool", "tool_call"}
+_OTEL_RETRIEVAL_OPS = {"embeddings", "retrieval", "retrieve"}
+
+
+def _otel_attr(span: dict[str, Any], *keys: str, default: Any = None) -> Any:
+    """Read the first present key from a span's flattened ``attributes`` dict."""
+    attrs = span.get("attributes", {})
+    for k in keys:
+        if k in attrs:
+            return attrs[k]
+    return default
+
+
+def from_otel_spans(spans: list[dict[str, Any]]) -> Trace:
+    """Import OpenTelemetry GenAI spans (exported as JSON) into a :class:`Trace`.
+
+    Follows the GenAI semantic conventions: ``gen_ai.operation.name`` maps to the step kind
+    (tool / retrieval / llm_call), ``gen_ai.tool.name`` names a tool, and latency comes from the
+    span's start/end nanosecond timestamps. Spans are ordered by start time.
+    """
+    ordered = sorted(spans, key=lambda s: s.get("startTimeUnixNano", 0))
+    records: list[dict[str, Any]] = []
+    for span in ordered:
+        op = str(_otel_attr(span, "gen_ai.operation.name", default="") or "").lower()
+        tool = _otel_attr(span, "gen_ai.tool.name")
+        if op in _OTEL_TOOL_OPS or tool is not None:
+            kind: StepKind = "tool_call"
+        elif op in _OTEL_RETRIEVAL_OPS:
+            kind = "retrieval"
+        else:
+            kind = "llm_call"
+        start = span.get("startTimeUnixNano")
+        end = span.get("endTimeUnixNano")
+        latency = (end - start) / 1e9 if (start is not None and end is not None) else None
+        raw_args = _otel_attr(span, "gen_ai.prompt", "input", default={}) or {}
+        args = raw_args if isinstance(raw_args, dict) else {"input": raw_args}
+        records.append(
+            {
+                "kind": kind,
+                "tool": tool or span.get("name"),
+                "args": args,
+                "output": _otel_attr(span, "gen_ai.completion", "output"),
+                "latency_s": latency,
+            }
+        )
+    return from_records(records)
+
+
 def from_deepeval_trace(trace: Any) -> Trace:  # pragma: no cover - needs a live DeepEval trace
     """Best-effort import of a DeepEval trace object into a :class:`Trace`.
 

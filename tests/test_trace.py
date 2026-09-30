@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from causeval.attribution.trace import Trace, canonical_args, from_records
+import pytest
+
+from causeval.attribution.trace import Trace, canonical_args, from_otel_spans, from_records
 
 
 def test_from_records_indexes_steps() -> None:
@@ -34,3 +36,43 @@ def test_prefix() -> None:
 def test_canonical_args_is_order_independent() -> None:
     assert canonical_args({"a": 1, "b": 2}) == canonical_args({"b": 2, "a": 1})
     assert canonical_args({"a": 1}) != canonical_args({"a": 2})
+
+
+def test_from_otel_spans_maps_kinds_and_orders_by_time() -> None:
+    spans = [
+        {
+            "name": "search",
+            "startTimeUnixNano": 2000,
+            "endTimeUnixNano": 3000,
+            "attributes": {"gen_ai.operation.name": "execute_tool", "gen_ai.tool.name": "search"},
+        },
+        {
+            "name": "chat",
+            "startTimeUnixNano": 1000,
+            "endTimeUnixNano": 1500,
+            "attributes": {"gen_ai.operation.name": "chat", "gen_ai.completion": "hi"},
+        },
+        {
+            "name": "vecdb",
+            "startTimeUnixNano": 4000,
+            "endTimeUnixNano": 4200,
+            "attributes": {"gen_ai.operation.name": "retrieval"},
+        },
+    ]
+    tr = from_otel_spans(spans)
+    # ordered by start time: chat (llm), search (tool), retrieval.
+    assert [s.kind for s in tr.steps] == ["llm_call", "tool_call", "retrieval"]
+    assert tr.steps[1].tool == "search"
+    assert tr.steps[0].output == "hi"
+    assert tr.steps[0].latency_s == pytest.approx(500 / 1e9)
+
+
+def test_from_otel_spans_wraps_nondict_input() -> None:
+    spans = [
+        {
+            "name": "chat",
+            "attributes": {"gen_ai.operation.name": "chat", "input": "a prompt string"},
+        }
+    ]
+    tr = from_otel_spans(spans)
+    assert tr.steps[0].args == {"input": "a prompt string"}

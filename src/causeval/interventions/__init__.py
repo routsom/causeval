@@ -6,6 +6,13 @@ from causeval.interventions.cf_gen import (
     generate_counterfactual,
     load_cf_overrides,
 )
+from causeval.interventions.cot import (
+    CoTFaithfulness,
+    CoTItem,
+    CoTModel,
+    a_cot_faithfulness,
+    cot_faithfulness,
+)
 from causeval.interventions.perturb import (
     PerturbApp,
     PerturbationEffect,
@@ -27,6 +34,9 @@ from causeval.interventions.rag import (
 )
 
 __all__ = [
+    "CoTFaithfulness",
+    "CoTItem",
+    "CoTModel",
     "Counterfactual",
     "GroundingItem",
     "GroundingResult",
@@ -36,11 +46,13 @@ __all__ = [
     "PerturbationEffect",
     "PerturbationResult",
     "RAGApp",
+    "a_cot_faithfulness",
     "a_ground",
     "a_perturb",
     "build_counterfactual",
     "classify_item",
     "contains_outcome",
+    "cot_faithfulness",
     "follows_cf_outcome",
     "generate_counterfactual",
     "ground",
