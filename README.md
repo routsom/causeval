@@ -221,18 +221,25 @@ run in CI on every commit so the *statistics* are provably correct without spend
 Each benchmark also has a **live** variant that swaps the fake for a real judge/model, so you
 can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 
-> ⏳ **Status: not yet published.** Live tables need provider API keys and a chosen default
-> judge model (tracked as an open question in [`PROGRESS.md`](./PROGRESS.md)). The table below
-> is the template these results will fill; run it yourself with the commands underneath.
+> 🚧 **Status: partial.** The baseline row below is a real live run against Claude Haiku 4.5;
+> B2-B6 live runs are still pending a larger budget (tracked in [`PROGRESS.md`](./PROGRESS.md)).
+> Run any of them yourself with the commands underneath.
 
 | Benchmark | Live claim to verify | Judge model | Result |
 |---|---|---|---|
-| **Baseline variance** | DeepEval single-sample scores are flaky; repeats + CIs quantify it | _tbd_ | _pending_ |
+| **Baseline variance** | DeepEval single-sample scores are flaky; repeats + CIs quantify it | `claude-haiku-4-5` | mean **1.000** [1.000, 1.000], flip **0.00** (n=6, R=5) ¹ |
 | **B2** RAG grounding | Counterfactual Adherence separates grounded vs parametric answers (AUROC ≥ 0.9); Faithfulness cannot | _tbd_ | _pending_ |
 | **B3** Judge bias | Real judges show measurable position/verbosity bias with CIs | _tbd_ | _pending_ |
 | **B4** PPI | PPI covers the human mean and beats the naive judge-mean at equal labels | _tbd_ | _pending_ |
 | **B5** Agent attribution | Decisive step = injected fault step in ≥ 90% of tasks with a real model | _tbd_ | _pending_ |
 | **B6** IRT | On ≥ 5 real systems, pruning 30-50% of items keeps ranking Kendall τ ≥ 0.9 | _tbd_ | _pending_ |
+
+> ¹ On this deliberately clean fictional-knowledge-base dataset, a deterministic (temperature 0)
+> judge scores every item a confident 1.0 with **zero** flip - exactly what you'd hope for on
+> unambiguous inputs, and a real end-to-end confirmation of the pipeline. Flakiness (nonzero
+> flip, the thing repeated sampling catches) shows up on *borderline* or *ambiguous* items and
+> with higher-temperature judges; see the offline B-benchmarks for those regimes. Full report:
+> [`bench/results/baseline_live.md`](./bench/results/baseline_live.md).
 
 Reproduce a live run (needs an API key for the provider you name; nothing is hardcoded):
 
