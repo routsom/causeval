@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-09-30T20:48:37.961724+00:00",
+  "systems": [
+    "claude-haiku-4-5",
+    "claude-sonnet-4-5",
+    "claude-sonnet-5",
+    "claude-opus-4-5",
+    "claude-opus-4-8",
+    "claude-fable-5"
+  ],
+  "system_accuracy": {
+    "claude-haiku-4-5": 0.9333333333333333,
+    "claude-sonnet-4-5": 1.0,
+    "claude-sonnet-5": 0.9333333333333333,
+    "claude-opus-4-5": 0.9333333333333333,
+    "claude-opus-4-8": 0.9666666666666667,
+    "claude-fable-5": 0.9333333333333333
+  },
+  "n_items": 30,
+  "n_kept": 15,
+  "kendall_tau": 0.9999999999999999
+}

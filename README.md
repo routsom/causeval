@@ -232,7 +232,7 @@ can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 | **B3** Judge bias | Real judges show measurable position/verbosity bias with CIs | `claude-haiku-4-5` | **position −0.292 [−0.422, −0.126]** (flagged), verbosity −0.061 (flagged), formatting/authorship n.s. ² |
 | **B4** PPI | PPI covers the human mean and beats the naive judge-mean at equal labels | `claude-haiku-4-5` | PPI **0.510 [0.353, 0.667]** covers truth (0.5); **eff. n ≈ 41 from 12 labels**, CI half of human-only ⁴ |
 | **B5** Agent attribution | Decisive step = injected fault step in ≥ 90% of tasks with a real model | _tbd_ | _pending_ |
-| **B6** IRT | On ≥ 5 real systems, pruning 30-50% of items keeps ranking Kendall τ ≥ 0.9 | _tbd_ | _pending_ |
+| **B6** IRT | On ≥ 5 real systems, pruning 30-50% of items keeps ranking Kendall τ ≥ 0.9 | 6 Claude models | pruned to 50% → **Kendall τ 1.000** (systems near ceiling; narrow spread) ⁵ |
 
 > ¹ Two real live runs against Claude Haiku 4.5. **Clean run** (n=6, R=5, temp 0,
 > [`baseline_live.md`](./bench/results/baseline_live.md)): every item a confident 1.000 with zero
@@ -280,6 +280,15 @@ can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 > there was little bias to correct here - unlike the offline synthetic judge. PPI's win on this
 > run is label efficiency; its bias-correction matters most on the subtler tasks where judges
 > drift (see the faithfulness leniency in the baseline footnote).
+>
+> ⁵ Live IRT ([`b6_irt_live.md`](./bench/results/b6_irt_live.md)) using **6 real Claude models as
+> the systems** (haiku-4-5, sonnet-4-5, sonnet-5, opus-4-5, opus-4-8, fable-5) on 30 hard
+> short-answer items. Fitting 2PL and pruning to the most-informative 15 items preserved the
+> system ranking exactly (**Kendall τ = 1.000**). Honest caveat: these are all frontier models, so
+> they cluster near ceiling (accuracy 0.93-1.00) and the true ability spread is narrow - the
+> ranking is close, so preserving it is a lighter test than the offline B6, which validates
+> pruning across a *wide* simulated ability range. The live run is a real end-to-end confirmation
+> that Fisher-information pruning doesn't scramble the ranking; the offline B6 is the rigorous one.
 
 Reproduce a live run (needs an API key for the provider you name; nothing is hardcoded):
 
