@@ -227,19 +227,25 @@ can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 
 | Benchmark | Live claim to verify | Judge model | Result |
 |---|---|---|---|
-| **Baseline variance** | DeepEval single-sample scores are flaky; repeats + CIs quantify it | `claude-haiku-4-5` | mean **1.000** [1.000, 1.000], flip **0.00** (n=6, R=5) ¹ |
+| **Baseline variance** | DeepEval single-sample scores are flaky; repeats + CIs quantify it | `claude-haiku-4-5` | clean items → 1.000, flip 0; borderline items → AnswerRelevancy **0.833 [0.633, 1.000]**, ContextualRelevancy **0.173 [0.000, 0.373]** ¹ |
 | **B2** RAG grounding | Counterfactual Adherence separates grounded vs parametric answers (AUROC ≥ 0.9); Faithfulness cannot | _tbd_ | _pending_ |
 | **B3** Judge bias | Real judges show measurable position/verbosity bias with CIs | _tbd_ | _pending_ |
 | **B4** PPI | PPI covers the human mean and beats the naive judge-mean at equal labels | _tbd_ | _pending_ |
 | **B5** Agent attribution | Decisive step = injected fault step in ≥ 90% of tasks with a real model | _tbd_ | _pending_ |
 | **B6** IRT | On ≥ 5 real systems, pruning 30-50% of items keeps ranking Kendall τ ≥ 0.9 | _tbd_ | _pending_ |
 
-> ¹ On this deliberately clean fictional-knowledge-base dataset, a deterministic (temperature 0)
-> judge scores every item a confident 1.0 with **zero** flip - exactly what you'd hope for on
-> unambiguous inputs, and a real end-to-end confirmation of the pipeline. Flakiness (nonzero
-> flip, the thing repeated sampling catches) shows up on *borderline* or *ambiguous* items and
-> with higher-temperature judges; see the offline B-benchmarks for those regimes. Full report:
-> [`bench/results/baseline_live.md`](./bench/results/baseline_live.md).
+> ¹ Two real live runs against Claude Haiku 4.5. **Clean run** (n=6, R=5, temp 0,
+> [`baseline_live.md`](./bench/results/baseline_live.md)): every item a confident 1.000 with zero
+> flip - the reassuring baseline, and an end-to-end pipeline confirmation. **Borderline run**
+> (n=5, R=5, temp 1.0, deliberately partial/ambiguous items,
+> [`baseline_live_borderline.md`](./bench/results/baseline_live_borderline.md)) surfaces what a
+> bare score hides: AnswerRelevancy drops to 0.833 with a **wide CI [0.63, 1.00]** (a single
+> item's score is genuinely uncertain across the set), ContextualRelevancy correctly falls to
+> 0.17 on the off-topic contexts, and one item wobbled across repeats. Two findings you can
+> *only* get by measuring: within-item flip is ≈ 0 even at temperature 1, so **Haiku 4.5 is a
+> stable judge**; but it rated deliberately unsupported claims (invented patent counts, a made-up
+> budget) as fully **Faithful = 1.000** - a real judge-leniency signal that causeval's judge
+> audit (bias probes, calibration, PPI) exists to catch.
 
 Reproduce a live run (needs an API key for the provider you name; nothing is hardcoded):
 

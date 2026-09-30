@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "title": "Baseline variance (live, borderline items)",
+    "generated_at": "2026-09-30T20:19:14.998057+00:00",
+    "judge_model": "claude-haiku-4-5-20251001",
+    "temperature": "1.0",
+    "repeats": "5",
+    "n_items": "5",
+    "threshold": "0.7",
+    "note": "Live Claude Haiku 4.5 at temperature 1.0 on deliberately borderline items, to surface real judge flakiness."
+  },
+  "baselines": [
+    {
+      "metric": "AnswerRelevancyMetric",
+      "n_items": 5,
+      "n_repeats": 5,
+      "n_failed": 0,
+      "mean_score": 0.8333333333333333,
+      "ci_low": 0.6333333333333333,
+      "ci_high": 1.0,
+      "ci_method": "cluster_bootstrap_percentile_B=2000",
+      "mean_within_item_variance": 0.0,
+      "flip_fraction": 0.0,
+      "n_flaky_items": 0
+    },
+    {
+      "metric": "ContextualRelevancyMetric",
+      "n_items": 5,
+      "n_repeats": 5,
+      "n_failed": 0,
+      "mean_score": 0.17333333333333334,
+      "ci_low": 0.0,
+      "ci_high": 0.37333333333333335,
+      "ci_method": "cluster_bootstrap_percentile_B=2000",
+      "mean_within_item_variance": 0.0011111111111111113,
+      "flip_fraction": 0.0,
+      "n_flaky_items": 0
+    },
+    {
+      "metric": "FaithfulnessMetric",
+      "n_items": 5,
+      "n_repeats": 5,
+      "n_failed": 0,
+      "mean_score": 1.0,
+      "ci_low": 1.0,
+      "ci_high": 1.0,
+      "ci_method": "cluster_bootstrap_percentile_B=2000",
+      "mean_within_item_variance": 0.0,
+      "flip_fraction": 0.0,
+      "n_flaky_items": 0
+    }
+  ]
+}
