@@ -12,6 +12,11 @@ A statistically rigorous, *causal* evaluation layer for LLM apps, built on top o
 [![Built on DeepEval](https://img.shields.io/badge/built%20on-DeepEval%20%E2%89%A54.2-orange)](https://github.com/confident-ai/deepeval)
 [![Status](https://img.shields.io/badge/status-alpha-yellow)](./PROGRESS.md)
 
+[![GitHub followers](https://img.shields.io/github/followers/routsom?label=Follow%20%40routsom&style=social)](https://github.com/routsom)
+[![GitHub stars](https://img.shields.io/github/stars/routsom/causeval?style=social)](https://github.com/routsom/causeval)
+
+**Created and maintained by [@routsom](https://github.com/routsom).**
+
 </div>
 
 ---
@@ -45,6 +50,7 @@ things a score alone can't give you:
 - [CLI](#cli)
 - [Design principles](#design-principles)
 - [Project status & roadmap](#project-status--roadmap)
+- [Author](#author)
 - [License](#license)
 
 ## Why causeval?
@@ -271,6 +277,14 @@ uv run ruff check . && uv run ruff format --check .
 uv run mypy src/causeval                          # strict
 uv run python -m causeval.bench.rag_grounding     # regenerate a benchmark report
 ```
+
+## Author
+
+**causeval is created, designed, and maintained by [@routsom](https://github.com/routsom).**
+
+If this project is useful to you, please ⭐ [star the repo](https://github.com/routsom/causeval)
+and [follow @routsom](https://github.com/routsom) for more work on rigorous LLM evaluation.
+Issues, ideas, and pull requests are welcome.
 
 ## License
 
