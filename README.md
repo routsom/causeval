@@ -71,7 +71,7 @@ causeval targets Python 3.10-3.12.
 
 ```bash
 # from source (recommended while in alpha)
-git clone https://github.com/<your-org>/causeval.git
+git clone https://github.com/routsom/causeval.git
 cd causeval
 uv sync                      # core install
 uv sync --all-extras         # + optional backends (see below)
