@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or discussion
+    url: https://github.com/routsom/causeval/discussions
+    about: Ask a question, share an idea, or discuss an approach before opening an issue.
+  - name: DeepEval issue
+    url: https://github.com/confident-ai/deepeval/issues
+    about: causeval wraps DeepEval. If the problem is in DeepEval's metrics or tracing, report it upstream.
+  - name: Security report
+    url: https://github.com/routsom/causeval/security/advisories/new
+    about: Report a security vulnerability privately instead of opening a public issue.

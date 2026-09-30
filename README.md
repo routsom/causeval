@@ -314,6 +314,14 @@ uv run mypy src/causeval                          # strict
 uv run python -m causeval.bench.rag_grounding     # regenerate a benchmark report
 ```
 
+### Contributing
+
+Contributions are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for setup, the checks your
+PR must pass, and the non-negotiable rules (especially: never report a bare score, and every
+statistical method needs a simulation test). Use the issue templates to
+[report a bug](https://github.com/routsom/causeval/issues/new?template=bug_report.yml) or
+[request a feature](https://github.com/routsom/causeval/issues/new?template=feature_request.yml).
+
 ## Author
 
 **causeval is created, designed, and maintained by [@routsom](https://github.com/routsom).**

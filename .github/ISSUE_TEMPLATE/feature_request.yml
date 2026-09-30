@@ -1,0 +1,62 @@
+name: Feature request
+description: Suggest a new capability or improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        causeval's scope is **uncertainty, causality, and judge validity** on top of DeepEval.
+        Please describe the evaluation problem first, then the API you imagine - it helps us
+        judge fit against that scope (see the non-goals in `SPEC.md`).
+  - type: textarea
+    id: problem
+    attributes:
+      label: What evaluation problem are you trying to solve?
+      description: The underlying need, not just the feature. What can't you answer today?
+      placeholder: I can't tell whether my agent's failures come from the retriever or the planner.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should causeval do? A sketch of the API, CLI, or output is welcome.
+      render: python
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area does this touch?
+      options:
+        - stats (CIs, gates, planning, IRT, adaptive)
+        - interventions (RAG grounding, perturbations, CoT)
+        - judge_audit (bias, calibration, PPI, conformal, jury)
+        - attribution (agent step-level blame)
+        - checks (schema/regex/NLI/metamorphic)
+        - bench (validation benchmarks)
+        - adapters / core (DeepEval wrapper, schemas, cache)
+        - CLI / reporting
+        - framework integration (LangGraph / OpenAI Agents / Pydantic AI)
+        - other / not sure
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing workarounds, or other designs you weighed.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: This fits causeval's scope (uncertainty / causality / judge validity), not DeepEval's core measurement job.
+          required: false
+        - label: I'm willing to help implement or test it.
+          required: false

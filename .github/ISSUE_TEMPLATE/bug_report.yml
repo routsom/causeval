@@ -1,0 +1,94 @@
+name: Bug report
+description: Report something that is broken or produces a wrong result
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. A minimal reproduction is worth more than a long
+        description - please include one if you can.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, and what went wrong?
+      placeholder: When I run `causeval gate ...`, it exits 0 even though the candidate regressed.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: |
+        The smallest code snippet, CLI command, or config that reproduces the issue.
+        For a statistical bug, a seeded example is ideal (`rng = np.random.default_rng(0)`).
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Result provenance (if applicable)
+      description: |
+        For a metric/judge/estimate issue, paste the result's `provenance` block - it captures
+        the seed, causeval/deepeval versions, and dataset hash, which makes the run reproducible.
+      render: json
+    validations:
+      required: false
+  - type: input
+    id: causeval-version
+    attributes:
+      label: causeval version
+      placeholder: "0.0.1 (or the git SHA)"
+    validations:
+      required: true
+  - type: input
+    id: deepeval-version
+    attributes:
+      label: deepeval version
+      placeholder: "4.2.x"
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.11.8"
+    validations:
+      required: true
+  - type: dropdown
+    id: offline-passes
+    attributes:
+      label: Does the offline test suite pass on your checkout?
+      description: "`uv run pytest -m \"not live\"`"
+      options:
+        - "Yes"
+        - "No"
+        - "Haven't run it"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Traceback / logs
+      description: Any error output. Paste as text, not a screenshot.
+      render: shell
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: This is a bug in causeval, not in DeepEval itself (causeval wraps DeepEval).
+          required: false
