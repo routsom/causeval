@@ -229,7 +229,7 @@ can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 |---|---|---|---|
 | **Baseline variance** | DeepEval single-sample scores are flaky; repeats + CIs quantify it | `claude-haiku-4-5` | clean items → 1.000, flip 0; borderline items → AnswerRelevancy **0.833 [0.633, 1.000]**, ContextualRelevancy **0.173 [0.000, 0.373]** ¹ |
 | **B2** RAG grounding | Counterfactual Adherence separates grounded vs parametric answers (AUROC ≥ 0.9); Faithfulness cannot | _tbd_ | _pending_ |
-| **B3** Judge bias | Real judges show measurable position/verbosity bias with CIs | _tbd_ | _pending_ |
+| **B3** Judge bias | Real judges show measurable position/verbosity bias with CIs | `claude-haiku-4-5` | **position −0.292 [−0.422, −0.126]** (flagged), verbosity −0.061 (flagged), formatting/authorship n.s. ² |
 | **B4** PPI | PPI covers the human mean and beats the naive judge-mean at equal labels | _tbd_ | _pending_ |
 | **B5** Agent attribution | Decisive step = injected fault step in ≥ 90% of tasks with a real model | _tbd_ | _pending_ |
 | **B6** IRT | On ≥ 5 real systems, pruning 30-50% of items keeps ranking Kendall τ ≥ 0.9 | _tbd_ | _pending_ |
@@ -246,6 +246,17 @@ can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 > stable judge**; but it rated deliberately unsupported claims (invented patent counts, a made-up
 > budget) as fully **Faithful = 1.000** - a real judge-leniency signal that causeval's judge
 > audit (bias probes, calibration, PPI) exists to catch.
+>
+> ² Live judge-bias probes against Claude Haiku 4.5 (n=12 neutral answer pairs judged in both
+> orders; n=12 pointwise items;
+> [`b3_judge_bias_live.md`](./bench/results/b3_judge_bias_live.md)). The headline is real and
+> significant: **a position effect of −0.292 [−0.422, −0.126]** means that, on answer pairs of
+> equal quality, Haiku picks the *second*-presented option ~79% of the time - a textbook
+> LLM-judge position bias, and exactly the kind of thing you must correct for before trusting a
+> pairwise judge. It also mildly *penalizes* padded/verbose answers (−0.061), and shows no
+> significant formatting or authorship-label effect. Unlike the offline B3 (which injects a known
+> 0.15/0.08 bias to prove the probes recover it), the live run measures whatever bias the real
+> judge actually has.
 
 Reproduce a live run (needs an API key for the provider you name; nothing is hardcoded):
 
