@@ -231,7 +231,7 @@ can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 | **B2** RAG grounding | Counterfactual Adherence separates grounded vs parametric answers (AUROC ≥ 0.9); Faithfulness cannot | `claude-haiku-4-5` | **CA AUROC 0.833** (n=12: 6 fictional vs 6 well-known) ³ |
 | **B3** Judge bias | Real judges show measurable position/verbosity bias with CIs | `claude-haiku-4-5` | **position −0.292 [−0.422, −0.126]** (flagged), verbosity −0.061 (flagged), formatting/authorship n.s. ² |
 | **B4** PPI | PPI covers the human mean and beats the naive judge-mean at equal labels | `claude-haiku-4-5` | PPI **0.510 [0.353, 0.667]** covers truth (0.5); **eff. n ≈ 41 from 12 labels**, CI half of human-only ⁴ |
-| **B5** Agent attribution | Decisive step = injected fault step in ≥ 90% of tasks with a real model | _tbd_ | _pending_ |
+| **B5** Agent attribution | Decisive step = injected fault step in ≥ 90% of tasks with a real model | `claude-haiku-4-5` | decisive step = injected fault in **4/5** valid tasks (0.80) ⁶ |
 | **B6** IRT | On ≥ 5 real systems, pruning 30-50% of items keeps ranking Kendall τ ≥ 0.9 | 6 Claude models | pruned to 50% → **Kendall τ 1.000** (systems near ceiling; narrow spread) ⁵ |
 
 > ¹ Two real live runs against Claude Haiku 4.5. **Clean run** (n=6, R=5, temp 0,
@@ -289,6 +289,16 @@ can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 > ranking is close, so preserving it is a lighter test than the offline B6, which validates
 > pruning across a *wide* simulated ability range. The live run is a real end-to-end confirmation
 > that Fisher-information pruning doesn't scramble the ranking; the offline B6 is the rigorous one.
+>
+> ⁶ Live agent attribution ([`b5_agent_attribution_live.md`](./bench/results/b5_agent_attribution_live.md))
+> against a real Claude Haiku tool-agent (price → multiply → add-tax tasks) with a wrong tool
+> argument injected at a known step. Counterfactual replay localized the injected fault as the
+> decisive step in **4 of 5 valid tasks (0.80)**. It lands below the offline 100% for two honest,
+> interesting reasons: (1) real Claude agents often *self-correct* an injected fault (one task was
+> dropped as "no persistent failure" because the agent noticed and redid the step - a genuine
+> robustness finding), and (2) this environment's Anthropic SDK build rejects `temperature=0`, so
+> the replay rollouts are noisy. The offline B5 (a deterministic scripted agent) validates the
+> attribution engine at 100% over 40 tasks.
 
 Reproduce a live run (needs an API key for the provider you name; nothing is hardcoded):
 

@@ -1,0 +1,45 @@
+{
+  "agent_model": "claude-haiku-4-5",
+  "generated_at": "2026-09-30T21:17:04.188254+00:00",
+  "accuracy": 0.8,
+  "hits": 4,
+  "total": 5,
+  "cases": [
+    {
+      "task": "widgetx6",
+      "fault_step": 0,
+      "decisive_step": 0,
+      "outcome": "hit"
+    },
+    {
+      "task": "gadgetx5",
+      "fault_step": 1,
+      "decisive_step": 1,
+      "outcome": "hit"
+    },
+    {
+      "task": "gizmox3",
+      "fault_step": 2,
+      "decisive_step": null,
+      "outcome": "miss"
+    },
+    {
+      "task": "sprocketx4",
+      "fault_step": 1,
+      "decisive_step": null,
+      "outcome": "setup-invalid (oracle failed or fault didn't break it)"
+    },
+    {
+      "task": "cogx7",
+      "fault_step": 0,
+      "decisive_step": 0,
+      "outcome": "hit"
+    },
+    {
+      "task": "widgetx9",
+      "fault_step": 2,
+      "decisive_step": 2,
+      "outcome": "hit"
+    }
+  ]
+}
