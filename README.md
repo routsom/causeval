@@ -1,8 +1,8 @@
 <div align="center">
 
-# causeval
+<img src=".github/social-preview.png" alt="causeval - turn LLM evaluation scores into defensible evidence" width="840">
 
-**Turn LLM evaluation scores into defensible evidence.**
+# causeval
 
 A statistically rigorous, *causal* evaluation layer for LLM apps, built on top of
 [DeepEval](https://github.com/confident-ai/deepeval).
