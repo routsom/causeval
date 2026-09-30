@@ -228,7 +228,7 @@ can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 | Benchmark | Live claim to verify | Judge model | Result |
 |---|---|---|---|
 | **Baseline variance** | DeepEval single-sample scores are flaky; repeats + CIs quantify it | `claude-haiku-4-5` | clean items → 1.000, flip 0; borderline items → AnswerRelevancy **0.833 [0.633, 1.000]**, ContextualRelevancy **0.173 [0.000, 0.373]** ¹ |
-| **B2** RAG grounding | Counterfactual Adherence separates grounded vs parametric answers (AUROC ≥ 0.9); Faithfulness cannot | _tbd_ | _pending_ |
+| **B2** RAG grounding | Counterfactual Adherence separates grounded vs parametric answers (AUROC ≥ 0.9); Faithfulness cannot | `claude-haiku-4-5` | **CA AUROC 0.833** (n=12: 6 fictional vs 6 well-known) ³ |
 | **B3** Judge bias | Real judges show measurable position/verbosity bias with CIs | `claude-haiku-4-5` | **position −0.292 [−0.422, −0.126]** (flagged), verbosity −0.061 (flagged), formatting/authorship n.s. ² |
 | **B4** PPI | PPI covers the human mean and beats the naive judge-mean at equal labels | _tbd_ | _pending_ |
 | **B5** Agent attribution | Decisive step = injected fault step in ≥ 90% of tasks with a real model | _tbd_ | _pending_ |
@@ -257,6 +257,18 @@ can publish the same claims against, say, `gpt-4o-mini` or `claude-haiku`.
 > significant formatting or authorship-label effect. Unlike the offline B3 (which injects a known
 > 0.15/0.08 bias to prove the probes recover it), the live run measures whatever bias the real
 > judge actually has.
+>
+> ³ Live RAG grounding against a real Claude Haiku 4.5 RAG app
+> ([`b2_rag_grounding_live.md`](./bench/results/b2_rag_grounding_live.md)), using the SPEC's
+> fictional-vs-well-known design. Counterfactual Adherence (does the answer follow a false edit to
+> a supporting fact?) separates the two groups with **AUROC 0.833**: all 6 fictional items score
+> CA 1.0 with high Context Reliance (the model *must* use the context), while the well-known items
+> mostly resist the false edit (CA ≈ 0, CR ≈ 0 - the model already knows the answer). It lands
+> below the offline 1.000 / the 0.9 target for an honest reason on real data: on 2 of 12 items the
+> model was swayed by the false context (e.g. it accepted "Romeo and Juliet was written by
+> Dickens") - a real sycophancy signal the metric surfaces. DeepEval Faithfulness would rate every
+> edited-context answer "faithful" and could not make this grounded-vs-parametric distinction at
+> all.
 
 Reproduce a live run (needs an API key for the provider you name; nothing is hardcoded):
 

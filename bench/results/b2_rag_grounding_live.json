@@ -1,0 +1,119 @@
+{
+  "app_model": "claude-haiku-4-5-20251001",
+  "generated_at": "2026-09-30T20:35:28.962624+00:00",
+  "ca_auroc": 0.8333333333333334,
+  "class_counts": {
+    "grounded": 8,
+    "parametric": 4
+  },
+  "items": [
+    {
+      "item_id": "f0",
+      "group": "fictional",
+      "correct_full": 0.6666666666666666,
+      "correct_none": 0.0,
+      "context_reliance": 0.6666666666666666,
+      "counterfactual_adherence": 1.0,
+      "classification": "grounded"
+    },
+    {
+      "item_id": "f1",
+      "group": "fictional",
+      "correct_full": 0.3333333333333333,
+      "correct_none": 0.0,
+      "context_reliance": 0.3333333333333333,
+      "counterfactual_adherence": 1.0,
+      "classification": "grounded"
+    },
+    {
+      "item_id": "f2",
+      "group": "fictional",
+      "correct_full": 1.0,
+      "correct_none": 0.0,
+      "context_reliance": 1.0,
+      "counterfactual_adherence": 1.0,
+      "classification": "grounded"
+    },
+    {
+      "item_id": "f3",
+      "group": "fictional",
+      "correct_full": 1.0,
+      "correct_none": 0.0,
+      "context_reliance": 1.0,
+      "counterfactual_adherence": 1.0,
+      "classification": "grounded"
+    },
+    {
+      "item_id": "f4",
+      "group": "fictional",
+      "correct_full": 1.0,
+      "correct_none": 0.0,
+      "context_reliance": 1.0,
+      "counterfactual_adherence": 1.0,
+      "classification": "grounded"
+    },
+    {
+      "item_id": "f5",
+      "group": "fictional",
+      "correct_full": 1.0,
+      "correct_none": 0.0,
+      "context_reliance": 1.0,
+      "counterfactual_adherence": 1.0,
+      "classification": "grounded"
+    },
+    {
+      "item_id": "w0",
+      "group": "well-known",
+      "correct_full": 1.0,
+      "correct_none": 1.0,
+      "context_reliance": 0.0,
+      "counterfactual_adherence": 0.3333333333333333,
+      "classification": "parametric"
+    },
+    {
+      "item_id": "w1",
+      "group": "well-known",
+      "correct_full": 1.0,
+      "correct_none": 1.0,
+      "context_reliance": 0.0,
+      "counterfactual_adherence": 0.0,
+      "classification": "parametric"
+    },
+    {
+      "item_id": "w2",
+      "group": "well-known",
+      "correct_full": 1.0,
+      "correct_none": 1.0,
+      "context_reliance": 0.0,
+      "counterfactual_adherence": 1.0,
+      "classification": "grounded"
+    },
+    {
+      "item_id": "w3",
+      "group": "well-known",
+      "correct_full": 1.0,
+      "correct_none": 1.0,
+      "context_reliance": 0.0,
+      "counterfactual_adherence": 0.0,
+      "classification": "parametric"
+    },
+    {
+      "item_id": "w4",
+      "group": "well-known",
+      "correct_full": 1.0,
+      "correct_none": 1.0,
+      "context_reliance": 0.0,
+      "counterfactual_adherence": 0.3333333333333333,
+      "classification": "parametric"
+    },
+    {
+      "item_id": "w5",
+      "group": "well-known",
+      "correct_full": 1.0,
+      "correct_none": 0.0,
+      "context_reliance": 1.0,
+      "counterfactual_adherence": 1.0,
+      "classification": "grounded"
+    }
+  ]
+}
