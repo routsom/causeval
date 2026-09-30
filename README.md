@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/social-preview.png" alt="causeval - turn LLM evaluation scores into defensible evidence" width="840">
+<img src=".github/social-preview.png" alt="causeval - turn LLM evaluation scores into defensible evidence" width="100%">
 
 # causeval
 
