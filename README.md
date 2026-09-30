@@ -106,12 +106,12 @@ The core object is `Experiment`: run each metric over each item `R` times and ge
 from causeval import Experiment, MetricSpec
 
 exp = Experiment(
-    dataset=goldens,                                   # DeepEval Goldens or plain dicts
+    dataset=goldens,  # DeepEval Goldens or plain dicts
     metrics=[MetricSpec("FaithfulnessMetric", {"threshold": 0.7})],
-    repeats=5,                                          # resample the judge 5x per item
+    repeats=5,  # resample the judge 5x per item
     seed=0,
 )
-run = exp.run()          # or: await exp.a_run()
+run = exp.run()  # or: await exp.a_run()
 print(run.summary())
 ```
 
@@ -130,14 +130,14 @@ items (the rest is judge noise), and that **6 items are flaky** (pass rate betwe
 ```python
 from causeval.stats import compare, gate
 
-comparisons = compare(                              # Holm-adjusted across metrics
+comparisons = compare(  # Holm-adjusted across metrics
     baseline_run.measurements,
     candidate_run.measurements,
     margin=0.02,
 )
 report = gate(comparisons)
-print(report.overall)     # "pass" | "regression" | "inconclusive"
-raise SystemExit(report.exit_code)                  # 0 / 1 / 2 for CI
+print(report.overall)  # "pass" | "regression" | "inconclusive"
+raise SystemExit(report.exit_code)  # 0 / 1 / 2 for CI
 ```
 
 The gate is **three-valued on purpose**: "inconclusive" (the CI straddles the margin) is a
@@ -175,7 +175,7 @@ flagged **false-faithful**.
 ```python
 from causeval.judge_audit import calibrate, ppi_mean_ci
 
-report = calibrate(judge_scores, human_labels)   # Spearman, kappa, isotonic map, ECE + CI
+report = calibrate(judge_scores, human_labels)  # Spearman, kappa, isotonic map, ECE + CI
 effect = ppi_mean_ci(human_labels, judge_on_labeled, judge_on_unlabeled)  # human mean, debiased
 ```
 
