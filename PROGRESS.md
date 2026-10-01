@@ -120,7 +120,7 @@ Current phase: **All core phases (0-6) done; Phase 7 causal extensions done (fra
 
 <!-- Copy from SPEC §10 as they are resolved or raised. -->
 1. ~~Package name and license~~ — license = Apache 2.0 (done); name `causeval` provisional, rename freely.
-2. Default judge model/provider for live benchmarks (needed to produce the live baseline report).
+2. ~~Default judge model/provider for live benchmarks~~ — used Anthropic **Claude Haiku 4.5** (and 5 other Claude models for B6); live baseline + B2-B6 reports committed under `bench/results/*_live.*`.
 3. Upstream the #3356 fix as a DeepEval PR?
 4. First agent framework adapter for Phase 7.
 5. `torch`/`nli` extra has no wheel for macOS x86_64 — pin a compatible torch or document Linux-only for the `nli` extra.
@@ -128,6 +128,8 @@ Current phase: **All core phases (0-6) done; Phase 7 causal extensions done (fra
 ## Session notes
 
 <!-- Short notes per session: what changed, what's next, anything surprising. -->
+- 2026-10-01 (live benchmarks) — Ran all live benchmarks against Anthropic Claude (Haiku 4.5; B6 used 6 Claude models as systems). Reports committed under `bench/results/*_live.*` and summarized in the README live table. Headlines: **B3** position bias −0.29 (picks the 2nd answer ~79% of the time) + verbosity −0.06, both flagged; **B2** CA AUROC 0.833 separating fictional (grounded) vs well-known (parametric), with real sycophancy on 2/12 items; **B4** PPI unbiased with effective-n ~41 from 12 labels (naive judge happened to be well-calibrated on clean items); **B5** decisive-step 4/5 (real agents self-correct injected faults — a robustness finding — and the SDK build rejects temperature=0); **B6** pruning keeps τ=1.0 but frontier models cluster near ceiling. Baseline: clean items 1.0/flip0; borderline items wide CIs + a faithfulness-leniency signal. All honest, with caveats in the README footnotes.
+  - Infra notes for future live runs: the installed `anthropic` SDK build **rejects the `temperature` kwarg** on `messages.create` (and DeepEval's AnthropicModel); omit it or use `generation_kwargs`. The key is an `sk-ant-usr-` (workspace-scoped) key — it works for Messages but not the Admin API. Inline-key Bash commands get recorded into `.claude/settings.local.json` (gitignored, never committed) — scrub it after. All `bench/results/*_live.*` were key-scanned before commit.
 - 2026-09-30 (Phase 7 causal extensions complete) — Built `stats/observational.py` (cross-fit AIPW ATE + placebo/random-common-cause/subset refuters + unobserved-confounding warning), `interventions/cot.py` (CoT faithfulness: early-answering AOC + mistake sensitivity), and `attribution/trace.py:from_otel_spans` (OTel GenAI import). 186 offline tests pass (10 new), ruff/format/mypy strict clean. Scope approved by user: framework harness adapters (LangGraph/OpenAI-Agents/Pydantic-AI), HTML report, and pytest plugin are deferred (need uninstalled frameworks; integration/presentation surface, not offline-testable).
   - AIPW sim confirms it covers the true ATE (~0.95) on confounded logs where the naive difference-in-means coverage collapses (≤0.5). CoT: a reasoning-driven fake model shows high AOC + mistake sensitivity, a fixed-answer model shows ~0 for both.
   - All core phases 0-6 + benchmarks B1-B6 are done; this closes the SPEC's implementable scope. The remaining Phase 7 items are opt-in integrations to add when a concrete framework/target exists.
